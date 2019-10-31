@@ -39,6 +39,20 @@ set.seed(10)
 iris_with_missing = iris %>% 
   map_df(~replace(.x, sample(1:150, 20), NA)) %>%
   mutate(Species = as.character(Species))
+
+input = iris_with_missing$Sepal.Length
+
+fill_missing = function(vec){
+  if(is.numeric(vec)){
+    ifelse(is.na(vec), mean(vec, na.rm = T), vec)
+  }else{
+    ifelse(is.na(vec), "virginica", vec)
+  }
+}
+
+
+iris_filled = map(iris_with_missing, fill_missing)
+
 ```
 
 For numeric variables, you should fill in missing values with the mean of non-missing values
@@ -49,10 +63,35 @@ Write a function that takes a vector as an argument; replaces missing values usi
 iris_with_missing %>% 
   mutate(Sepal.Length = replace(Sepal.Length, is.na(Sepal.Length), mean(Sepal.Length)))
 
-mean_replace = function(col){
-  
-  col = replace(col, is.na(col), mean(col, na.rm = T))
+fill_missing = function(x){
+ if (is.numeric(x)){
+   if( is.na(x)){
+     
+   }
+    x = replace(x, is.na(x), mean(as.vector(x), na.rm = T))
+  }else{
+    col = replace(col, is.na(col), "virginica")
+  }
 }
+
+
+
+output = vector("vector", length = 4)
+
+for (i in 1:5) {
+  print(iris)
+  iris_with_missing[i] = fill_missing(iris_with_missing[i])
+}
+
+
+
+for (i in 1:2) {
+  iris_with_missing[i] = fill_missing(iris_with_missing[i])
+}
+
+numeric %in% (as.vector(iris_with_missing[1]))
+
+
 
 mean_replace = function(){
   if()
