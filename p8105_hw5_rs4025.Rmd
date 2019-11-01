@@ -63,15 +63,39 @@ iris_filled = map(iris_with_missing, fill_missing)
 df = tibble(
   names = list.files("data 4")
 )
-result = 
+tidy_df = 
   df %>% 
   mutate(patient = map(str_c("./data 4/",names), read.csv)) %>% 
   unnest(cols = c(patient)) %>% 
+  mutate(n = c(1:nrow(.))) %>% 
   separate(names, 
            into = c("arm", "id"), 
            sep = "_") %>% 
-  mutate(id = as.numeric(str_remove(id, ".csv")))
-
+  pivot_longer(
+    week_1:week_8, 
+    names_to = "week", 
+    values_to = "value"
+  ) %>% 
+  mutate(week = as.numeric(str_remove(week, "week_")), 
+         id = as.numeric(str_remove(id, ".csv")))
 ```
+
+```{r}
+# spaghetti plot 
+tidy_df %>% 
+  mutate(id_arm = str_c(arm, id, sep = "_")) %>% 
+  ggplot(aes( x = week, y = value, color = id_arm)) + 
+  geom_line(aes(group = id_arm, linetype = arm)) + 
+  theme(legend.position = "bottom") +
+  labs(
+    title = "Observation for each subject over 8 weeks",
+    x = "Week",
+    y = "Observation") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  guides(color = FALSE) +
+  scale_linetype_discrete(name = "Arm", labels = c("control", "experimental"))
+```
+
+The spaghetti plot shows that over the course of 8 weeks individual's observations in the experimental group increase while individual's observations in the control group tend to stay fluctuating around lower observations and may even decrease.  
 
 
