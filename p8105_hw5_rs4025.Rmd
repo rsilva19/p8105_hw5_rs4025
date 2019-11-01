@@ -31,7 +31,7 @@ theme_set(theme_minimal() + theme(legend.position = "bottom"))
 
 ** delete unused packages
 
-## Problem 1 
+### Problem 1 
 
 ```{r}
 set.seed(10)
@@ -50,76 +50,28 @@ fill_missing = function(vec){
   }
 }
 
-
 iris_filled = map(iris_with_missing, fill_missing)
 
 ```
 
-For numeric variables, you should fill in missing values with the mean of non-missing values
-For character variables, you should fill in missing values with "virginica"
-Write a function that takes a vector as an argument; replaces missing values using the rules defined above; and returns the resulting vector. Apply this function to the columns of iris_with_missing using a map statement.
 
-```{r, warning = F}
-iris_with_missing %>% 
-  mutate(Sepal.Length = replace(Sepal.Length, is.na(Sepal.Length), mean(Sepal.Length)))
+### Problem 2 
+# Start with a dataframe containing all file names; the list.files function will help
+# Iterate over file names and read in data for each subject using purrr::map and saving the result as a new variable in the dataframe
+# Tidy the result; manipulate file names to include control arm and subject ID, make sure weekly observations are “tidy”, and do any other tidying that’s necessary
+```{r}
+df = tibble(
+  names = list.files("data 4")
+)
+result = 
+  df %>% 
+  mutate(patient = map(str_c("./data 4/",names), read.csv)) %>% 
+  unnest(cols = c(patient)) %>% 
+  separate(names, 
+           into = c("arm", "id"), 
+           sep = "_") %>% 
+  mutate(id = as.numeric(str_remove(id, ".csv")))
 
-fill_missing = function(x){
- if (is.numeric(x)){
-   if( is.na(x)){
-     
-   }
-    x = replace(x, is.na(x), mean(as.vector(x), na.rm = T))
-  }else{
-    col = replace(col, is.na(col), "virginica")
-  }
-}
-
-
-
-output = vector("vector", length = 4)
-
-for (i in 1:5) {
-  print(iris)
-  iris_with_missing[i] = fill_missing(iris_with_missing[i])
-}
-
-
-
-for (i in 1:2) {
-  iris_with_missing[i] = fill_missing(iris_with_missing[i])
-}
-
-numeric %in% (as.vector(iris_with_missing[1]))
-
-
-
-mean_replace = function(){
-  if()
-  col = replace(col, is.na(col), mean(col, na.rm = T))
-}
-
-
-iris_nest = 
-  iris_with_missing %>% 
-  nest(-Species) %>% 
-  mutate(col = map(.x, mean)
-
-iris_numeric = 
-  iris_with_missing %>% 
-  select_if(is.numeric)
-
-map(iris_numeric, mean_replace) 
-
-iris_with_missing %>% 
-  select_if(is.numeric) %>% 
-  mutate(names() = mean_replace(names()))
-
-
-iris_with_missing %>% 
-  select_if(is.numeric) %>%
-  map(names(), mean_replace)
-
-
-  map(mutate, col = replace(col, is.na(col), mean(col)))
 ```
+
 
