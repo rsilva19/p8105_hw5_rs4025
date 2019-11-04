@@ -29,8 +29,6 @@ theme_set(theme_minimal() + theme(legend.position = "bottom"))
 ```
 
 
-** delete unused packages
-
 ### Problem 1 
 
 ```{r}
@@ -51,14 +49,12 @@ fill_missing = function(vec){
 }
 
 iris_filled = map(iris_with_missing, fill_missing)
-
+head(iris_filled)
 ```
 
 
 ### Problem 2 
-# Start with a dataframe containing all file names; the list.files function will help
-# Iterate over file names and read in data for each subject using purrr::map and saving the result as a new variable in the dataframe
-# Tidy the result; manipulate file names to include control arm and subject ID, make sure weekly observations are “tidy”, and do any other tidying that’s necessary
+
 ```{r}
 df = tibble(
   names = list.files("data 4")
@@ -115,7 +111,7 @@ generate_data = function( beta1, n = 30, beta0 = 2, var_error = 50 ){
     filter(term == "x") %>% 
     select(estimate, p.value)
 }
-
+set.seed(1)
 sim_results = 
   tibble(beta1 = c(0:6)) %>% 
   mutate(
@@ -137,38 +133,43 @@ data_prop %>%
   
 ```
 
-# Describe the association between effect size and power.
-** FIX As effect size increase (ie beta true increases?), prob of rejecting increases ie power increases. 
+In the case of simple linear regression, effect size is equivalent to $\beta_1$. As effect size increases, the probability of rejecting the null increases, ie the power increases. This makes sense since the null hypothesis is that $\beta_1$ = 0, so as the true $\beta_1$ gets farther from 0, it is more likely that our simulated data will find $\hat{\beta_1}$ is significantly different from 0, using an alpha level of 0.05. 
 
-
-Make a plot showing the average estimate of β̂ 1 on the y axis and the true value of β1 on the x axis. 
 ```{r}
+
+data1= sim_results %>% 
+  group_by(beta1) %>% 
+  summarize(mean = mean(estimate)) %>% 
+   cbind(data = rep("data1",nrow(.)))
 
 data2 = sim_results %>% 
   mutate( reject = ifelse(p.value < 0.05, TRUE, FALSE)) %>% 
   group_by(beta1, reject) %>% 
   summarize(mean = mean(estimate)) %>% 
-  filter(reject)
+  filter(reject) %>% 
+  cbind(data = rep("data2",nrow(.))) %>% 
+  select(-reject)
 
-sim_results %>% 
-  group_by(beta1) %>% 
-  summarize(mean = mean(estimate)) %>% 
-  ggplot( aes( x = beta1, y = mean)) +
-  geom_point(color = "blue") +
-  geom_point( data = data2, color = "red", aes( x = beta1, y = mean))  +
+data = bind_rows(data1, data2)
+
+# plot 
+ggplot(data, aes( x = beta1, y = mean, color = data)) +
+  geom_point() +
   labs(
     title = "Mean estimate of Beta1 Vs. True Beta1",
     x = "Beta 1",
-    y = "Mean Estimate")+
-  scale_color_manual("test", 
-                     values = c("red", "blue"), 
-                     labels = c('data2', "data1"))
+    y = "Mean Estimate") +
+  scale_color_discrete(name = "", 
+                       labels = c("all betas", "null rejected")) +
+  theme(plot.title = element_text(hjust = 0.5))
 
-# need legend 
 ```
 
 
-Is the sample average of β̂ 1 across tests for which the null is rejected approximately equal to the true value of β1? Why or why not?
 
-The sample average of $\hat{\beta_1}$ across tests for which the null is rejected is greater than the true value of $\beta_1$. More specifically, also always greater, the sample average gets closer to the true beta as beta increases (except for the case where $\beta_1 = 0$). This is because we are more likely to reject at test when the estimated $\beta_1$ is not equal to the true $\beta_1$ value. Since we are more likely to reject a test as the true $\beta_1$ grows (from the above plot), the average sample of $\beta$ grows closer to the true $\beta_1$ as the true beta increases.   
+
+The sample average of $\hat{\beta_1}$ across tests for which the null is rejected is greater than the true value of $\beta_1$ for all betas not equal to 0. More specifically, the sample average gets closer to the true beta as beta increases (except for the case where $\beta_1 = 0$). This is because we are more likely to reject a test when the estimated $\beta_1$ is not equal to the true $\beta_1$ value. Since we are more likely to reject a test as the true $\beta_1$ grows (from the above plot), the average sample of $\beta$ grows closer to the true $\beta_1$ as the true beta increases.
+For the case of $\beta_1 = 0$, it is not likely that we would reject the null hypothesis
+
+** why is it below?
 
